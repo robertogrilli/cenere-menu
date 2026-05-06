@@ -7,9 +7,18 @@ import type { PiattoData } from "./data";
 interface ExpandCardsProps {
   piatti: PiattoData[];
   onSelect: (p: PiattoData) => void;
+  onAddToCart?: (p: PiattoData) => void;
 }
 
-function DishCard({ piatto, onSelect }: { piatto: PiattoData; onSelect: (p: PiattoData) => void }) {
+function DishCard({
+  piatto,
+  onSelect,
+  onAddToCart,
+}: {
+  piatto: PiattoData;
+  onSelect: (p: PiattoData) => void;
+  onAddToCart?: (p: PiattoData) => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -25,7 +34,7 @@ function DishCard({ piatto, onSelect }: { piatto: PiattoData; onSelect: (p: Piat
       whileTap={{ scale: 0.98 }}
       onClick={() => onSelect(piatto)}
     >
-      {/* Foto 4:3 — no testo sopra */}
+      {/* Foto 4:3 */}
       <div style={{ position: "relative", paddingTop: "75%" }}>
         <img
           src={piatto.imageUrl}
@@ -41,7 +50,7 @@ function DishCard({ piatto, onSelect }: { piatto: PiattoData; onSelect: (p: Piat
         />
       </div>
 
-      {/* Area testo sotto */}
+      {/* Area testo */}
       <div style={{ padding: "12px 16px" }}>
         <h3
           style={{
@@ -89,6 +98,10 @@ function DishCard({ piatto, onSelect }: { piatto: PiattoData; onSelect: (p: Piat
 
           <button
             aria-label={`Aggiungi ${piatto.nome}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart?.(piatto);
+            }}
             style={{
               width: "32px",
               height: "32px",
@@ -113,7 +126,7 @@ function DishCard({ piatto, onSelect }: { piatto: PiattoData; onSelect: (p: Piat
   );
 }
 
-export function ExpandCards({ piatti, onSelect }: ExpandCardsProps) {
+export function ExpandCards({ piatti, onSelect, onAddToCart }: ExpandCardsProps) {
   return (
     <div
       style={{
@@ -124,7 +137,7 @@ export function ExpandCards({ piatti, onSelect }: ExpandCardsProps) {
       }}
     >
       {piatti.map((piatto) => (
-        <DishCard key={piatto.id} piatto={piatto} onSelect={onSelect} />
+        <DishCard key={piatto.id} piatto={piatto} onSelect={onSelect} onAddToCart={onAddToCart} />
       ))}
     </div>
   );

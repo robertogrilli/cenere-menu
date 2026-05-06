@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { CinematicLandingHero } from "@/components/osteria-roma/CinematicLandingHero";
 import { NeuralNoise } from "@/components/osteria-roma/NeuralNoise";
 import { BlurReveal } from "@/components/osteria-roma/BlurReveal";
@@ -17,10 +18,26 @@ import {
   PARALLAX_IMAGE,
 } from "@/components/osteria-roma/data";
 import type { PiattoData } from "@/components/osteria-roma/data";
+import { addToCart, getCartCount, getCart } from "@/lib/cart";
+
+const slug = "osteria-roma";
 
 export default function OsteriaRomaPage() {
   const [selectedPiatto, setSelectedPiatto] = useState<PiattoData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [addedId, setAddedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCartCount(getCartCount(getCart(slug)));
+  }, []);
+
+  const handleAddToCart = useCallback((piatto: PiattoData) => {
+    const items = addToCart(slug, piatto);
+    setCartCount(getCartCount(items));
+    setAddedId(piatto.id);
+    setTimeout(() => setAddedId(null), 900);
+  }, []);
 
   const categorie = [...new Set(PIATTI.map((p) => p.categoria))];
 
@@ -34,6 +51,7 @@ export default function OsteriaRomaPage() {
           setSelectedPiatto(p);
           setModalOpen(true);
         }}
+        onAddToCart={handleAddToCart}
       />
     ),
   }));
@@ -50,8 +68,76 @@ export default function OsteriaRomaPage() {
         overflowX: "hidden",
       }}
     >
-      {/* Sfondo granuloso fisso */}
       <NeuralNoise />
+
+      {/* Cart badge */}
+      {cartCount > 0 && (
+        <Link
+          href="/osteria-roma/carrello"
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: 100,
+            background: "#C4622D",
+            color: "#F0E6D3",
+            borderRadius: "999px",
+            padding: "8px 18px",
+            fontFamily: "'Work Sans', sans-serif",
+            fontSize: "13px",
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            boxShadow: "0 4px 20px rgba(196,98,45,0.4)",
+          }}
+        >
+          <span>Carrello</span>
+          <span
+            style={{
+              background: "#F0E6D3",
+              color: "#C4622D",
+              borderRadius: "50%",
+              width: "22px",
+              height: "22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "12px",
+              fontWeight: 700,
+            }}
+          >
+            {cartCount}
+          </span>
+        </Link>
+      )}
+
+      {/* Added feedback pill */}
+      {addedId && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 200,
+            background: "#1E1610",
+            border: "1px solid rgba(196,98,45,0.4)",
+            color: "#C4622D",
+            borderRadius: "999px",
+            padding: "8px 20px",
+            fontFamily: "'Work Sans', sans-serif",
+            fontSize: "13px",
+            fontWeight: 500,
+            letterSpacing: "0.06em",
+            pointerEvents: "none",
+          }}
+        >
+          Aggiunto al carrello
+        </div>
+      )}
 
       {/* ── HERO ── */}
       <CinematicLandingHero
@@ -63,10 +149,10 @@ export default function OsteriaRomaPage() {
         onCtaClick={scrollToMenu}
       />
 
-      {/* ── GALLERY AMBIENTE ── */}
+      {/* ── GALLERY ── */}
       <ImageAutoSlider images={GALLERY_IMAGES} />
 
-      {/* ── SEPARATORE PARALLAX ── */}
+      {/* ── PARALLAX ── */}
       <ParallaxSection imageUrl={PARALLAX_IMAGE} className="my-12">
         <BlurReveal>
           <blockquote
@@ -117,14 +203,14 @@ export default function OsteriaRomaPage() {
               marginBottom: "32px",
             }}
           >
-            Tocca un piatto per scoprire ingredienti e storia
+            Tocca un piatto per scoprire ingredienti e storia · usa + per aggiungerlo al carrello
           </p>
         </BlurReveal>
 
         <SlidingTabs items={tabItems} defaultIndex={0} />
       </section>
 
-      {/* ── CTA ORDINE ── */}
+      {/* ── CTA ── */}
       <section
         className="flex flex-col items-center py-20 px-6"
         style={{ position: "relative", zIndex: 10 }}
@@ -161,9 +247,9 @@ export default function OsteriaRomaPage() {
           </h2>
         </BlurReveal>
 
-        <ShimmerButton>
-          Conferma ordine al tavolo
-        </ShimmerButton>
+        <Link href="/osteria-roma/carrello" style={{ textDecoration: "none" }}>
+          <ShimmerButton>Vai al carrello</ShimmerButton>
+        </Link>
 
         <p
           style={{
@@ -178,14 +264,14 @@ export default function OsteriaRomaPage() {
         </p>
       </section>
 
-      {/* ── MODAL DETTAGLIO PIATTO ── */}
+      {/* ── MODAL ── */}
       <AnimatedModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         piatto={selectedPiatto}
       />
 
-      {/* ── POPUP RACCOLTA CONTATTI ── */}
+      {/* ── POPUP ── */}
       <FloatingChatWidgetShadcnui
         offerTitle="Torna all'Osteria Roma"
         offerDescription="10% di sconto al prossimo ordine — lascia il tuo numero."
